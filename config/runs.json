@@ -1,0 +1,118 @@
+[
+  {
+  "id": "m0_baseline",
+  "label": "Method 0: baseline (no optimizations)",
+  "method": "m0",
+  "params": {
+      "steps": 25,
+      "frames": 25,
+      "seed": 42
+    },
+  "notes": "no optimizations"
+  },
+  {
+    "id": "m1_quant_fp16",
+    "label": "M1: quantization + mixed precision",
+    "method": "m1",
+    "params": {
+      "steps": 25,
+      "frames": 25,
+      "seed": 42
+    },
+    "notes": "INT8 weight-only (UNet Linear) + FP16"
+  },
+  {
+    "id": "m2_compile",
+    "label": "M2: graph/hardware optimization",
+    "method": "m2",
+    "params": {
+      "steps": 25,
+      "frames": 25,
+      "seed": 42
+    },
+    "notes": "torch.compile + TF32"
+  },
+  {
+    "id": "m3_steps_15",
+    "label": "M3: fewer diffusion steps (15)",
+    "method": "m3",
+    "params": {
+      "steps": 15,
+      "frames": 25,
+      "seed": 42
+    },
+    "notes": "num_inference_steps=15"
+  },
+  {
+    "id": "m3_steps_10",
+    "label": "M3: fewer diffusion steps (10)",
+    "method": "m3",
+    "params": {
+      "steps": 10,
+      "frames": 25,
+      "seed": 42
+    },
+    "notes": "num_inference_steps=10"
+  },
+  {
+    "id": "m3_steps_4",
+    "label": "M3: fewer diffusion steps (4)",
+    "method": "m3",
+    "params": {
+      "steps": 4,
+      "frames": 25,
+      "seed": 42
+    },
+    "notes": "num_inference_steps=4"
+  },
+  {
+    "id": "m4_distilled_weights",
+    "label": "M4: distillation (distilled weights, normal steps)",
+    "method": "m4",
+    "params": {
+      "steps": 25,
+      "frames": 25,
+      "seed": 42,
+      "repo_id": "wangfuyun/AnimateLCM-SVD-xt"
+    },
+    "notes": "AnimateLCM distilled UNet weights, but still many steps"
+  },
+  {
+    "id": "m5_sparsity",
+    "label": "M5: structured sparsity (2:4)",
+    "method": "m5",
+    "params": {
+      "steps": 25,
+      "frames": 25,
+      "seed": 42,
+      "exclude_path": "config/exclude.json"
+    },
+    "notes": "2:4 semi-structured sparsity (cuSPARSELt) if supported"
+  },
+  {
+    "id": "m6_keyframes_rife",
+    "label": "M6: keyframes + RIFE interpolation",
+    "method": "m6",
+    "params": {
+      "steps": 25,
+      "keyframes": 13,
+      "seed": 42,
+      "fps": 7
+    },
+    "notes": "Generate 13 keyframes with diffusion + interpolate to 25 frames (RIFE)"
+  },
+  {
+    "id": "m7_lcm_4steps",
+    "label": "M7: consistency / LCM (AnimateLCM-SVD-xt)",
+    "method": "m7",
+    "params": {
+      "steps": 4,
+      "frames": 25,
+      "seed": 42,
+      "repo_id_weights": "wangfuyun/AnimateLCM-SVD-xt",
+      "repo_id_sched": "wangfuyun/AnimateLCM-SVD",
+      "sched_filename": "lcm_scheduler.py"
+    },
+    "notes": "AnimateLCM-SVD-xt + LCM scheduler"
+  }
+]
