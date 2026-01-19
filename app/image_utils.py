@@ -9,7 +9,7 @@ def load_image(path: str) -> Image.Image:
 
 
 def resize_for_svd(img: Image.Image, target_long: int = 1024, target_short: int = 576) -> Image.Image:
-    # SVD в diffusers обычно ожидает 1024x576 или 576x1024.
+    # SVD в diffusers ожидает 1024x576 или 576x1024.
     w, h = img.size
     if w >= h:
         tw, th = target_long, target_short

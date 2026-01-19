@@ -8,7 +8,7 @@ import torch._inductor.codecache as codecache
 import pynvml
 
 # NVML cache (best-effort): to avoid nvmlInit/shutdown on every temperature poll
-_pynvml = None  # type: ignore
+_pynvml = None
 _nvml_inited: bool = False
 _nvml_handles: Dict[int, object] = {}
 
@@ -82,12 +82,12 @@ def gpu_temperature_c(gpu_index: Optional[int] = None) -> Optional[float]:
 
 
 def gpu_temp_snapshot_c(prefix: str = "") -> Dict[str, Optional[float]]:
-    """Снимок температуры GPU (°C) с префиксом ключей."""
+    """Снимок температуры GPU с префиксом ключей."""
     return {f"{prefix}gpu_temp_c": gpu_temperature_c()}
 
 
 def start_gpu_temp_sampler(*, interval_s: float = 0.5, gpu_index: Optional[int] = None) -> Callable[[], Optional[float]]:
-    """Запускает фоновый опрос температуры GPU и возвращает stop() -> peak_temp_c.
+    """Запускает фоновый опрос температуры GPU и возвращает stop() - peak_temp_c.
 
     Если температура недоступна, stop() вернёт None.
     """

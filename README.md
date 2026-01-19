@@ -20,7 +20,6 @@
 Установка зависимостей:
 
 > В репозитории лежит пример входного изображения: `rocket_in_space.jpg`.
-> (Если вы храните вход под русским именем, просто передайте его путь в `--input`.)
 
 ```bash
 poetry install
@@ -48,7 +47,7 @@ python -m app.run_all --input "./rocket_in_space.jpg" --config config/runs.json 
 
 ## Методы (реализация в `app/methods.py`)
 
-Ниже - то, **что именно делает код**, без теоретических "обещаний".
+Ниже - то, **что именно делает код**.
 
 ### M0 - baseline (без оптимизаций)
 - Загружает SVD пайплайн в FP16 (`load_svd_pipe(fp16=True, cpu_offload=False)`)
@@ -153,7 +152,7 @@ python -m app.run_all --input "./rocket_in_space.jpg" --config config/runs.json 
 
 > Примечание про VRAM: `allocated` - реально занятая память под тензоры. `reserved` - кеш аллокатора PyTorch, он может заметно отличаться от физического usage и в логах иногда выглядит больше `total` (это ограничение/особенность способа измерения). Для сравнения методов внутри одного прогона его все равно полезно смотреть как относительную величину.
 
-### Выводы по этому прогону (с учетом доп. метрик)
+### Выводы по этому прогону
 
 **Скорость и цена ускорения**
 - **M6 (keyframes + RIFE)**: **99.4s** (3.45x; **3.97 s/frame**) при очень высокой привязке к входу (CLIP sim **0.981**). По динамике кадры становятся более гладкими (tSSIM выше, tLPIPS ниже), что ожидаемо из-за интерполяции: меньше микродрожания, но иногда меньше "текстурного" движения.
@@ -265,4 +264,24 @@ python -m app.run_all --input "./rocket_in_space.jpg" --config config/runs.json 
 
 ## License
 
-См. файл `LICENSE`.
+MIT License
+
+Copyright (c) 2026 dhauryk
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -22,7 +22,7 @@ def load_svd_pipe(*, fp16: bool = True, cpu_offload: bool = False) -> StableVide
 
     pipe.to(get_device())
 
-    # memory/perf toggles (как в ноуте)
+    # memory/perf toggles
     try:
         pipe.enable_attention_slicing("auto")
     except Exception:

@@ -11,25 +11,34 @@ import pandas as pd
 
 def _ensure_pythonpath(env: Dict[str, str], project_root: Path) -> Dict[str, str]:
     env = dict(env)
-    src = str(project_root / "src")
-    env["PYTHONPATH"] = src + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+    root = str(project_root)
+    env["PYTHONPATH"] = root + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
     return env
 
 
 def main() -> int:
+    project_root = Path(__file__).resolve().parents[1]
+
+    default_input = project_root / "rocket_in_space.jpg"
+
     p = argparse.ArgumentParser()
-    p.add_argument("--input", default="/home/gavrik/studies/ракета_в_космосе.jpg", help="Path to input image")
-    p.add_argument("--config", default="config/runs.json", help="Path to runs config JSON")
-    p.add_argument("--out", default="outputs", help="Base output folder")
+    p.add_argument("--input",  type=Path, default=default_input,
+                   help="Path to input image (absolute or relative to repo root)")
+    p.add_argument("--config", type=Path, default=project_root / "config" / "runs.json",
+                   help="Path to runs config JSON (absolute or relative to repo root)")
+    p.add_argument("--out",    type=Path, default=project_root / "outputs",
+                   help="Base output folder (absolute or relative to repo root)")
     p.add_argument("--fail-fast", action="store_true", help="Stop on first failed method")
     args = p.parse_args()
 
-    project_root = Path(__file__).resolve().parents[2]
-    config_path = (project_root / args.config).resolve()
+    # Нормализация: если путь относительный - считаем его от project_root
+    input_path  = (args.input  if args.input.is_absolute()  else (project_root / args.input)).resolve()
+    config_path = (args.config if args.config.is_absolute() else (project_root / args.config)).resolve()
+    out_base    = (args.out    if args.out.is_absolute()    else (project_root / args.out)).resolve()
     runs: List[Dict[str, Any]] = json.loads(config_path.read_text(encoding="utf-8"))
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    outdir = (project_root / args.out / run_id).resolve()
+    outdir = (out_base / run_id).resolve()
     outdir.mkdir(parents=True, exist_ok=True)
 
     logs_dir = outdir / "logs"
@@ -51,9 +60,9 @@ def main() -> int:
         cmd = [
             sys.executable,
             "-m",
-            "i2v_opt.run_one",
+            "app.run_one",
             "--input",
-            str(Path(args.input).resolve()),
+            str(input_path),
             "--method",
             method,
             "--id",
@@ -73,7 +82,7 @@ def main() -> int:
             logf.write("CMD: " + " ".join(cmd) + "\n\n")
             logf.flush()
 
-            proc = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            proc = subprocess.run(cmd, env=env, cwd=str(project_root), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             logf.write(proc.stdout)
 
         if proc.returncode != 0:
@@ -103,8 +112,8 @@ def main() -> int:
 
 
     print("Done")
-    #return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+    

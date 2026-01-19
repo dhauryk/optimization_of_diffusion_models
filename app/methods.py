@@ -18,9 +18,9 @@ from diffusers.utils import export_to_video
 from .pipeline import load_svd_pipe
 from .generation import generate_svd_video
 from torchao.quantization import Int8WeightOnlyConfig, quantize_
-from huggingface_hub import hf_hub_download  # type: ignore
-from safetensors.torch import load_file  # type: ignore
-from torch.sparse import SparseSemiStructuredTensor, to_sparse_semi_structured  # type: ignore
+from huggingface_hub import hf_hub_download
+from safetensors.torch import load_file
+from torch.sparse import SparseSemiStructuredTensor, to_sparse_semi_structured
 
 
 def try_quantize_unet_torchao(pipe: StableVideoDiffusionPipeline) -> str:
@@ -44,7 +44,7 @@ def optimize_for_gpu(pipe: StableVideoDiffusionPipeline) -> str:
         except Exception:
             notes.append("TF32 enabled")
     try:
-        pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=False)  # type: ignore
+        pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=False)
         notes.append("torch.compile(unet) enabled")
     except Exception as e:
         notes.append(f"torch.compile fallback: {type(e).__name__}: {e}")
@@ -66,34 +66,34 @@ def load_animatelcm_unet_weights(
         return f"AnimateLCM weights NOT loaded (fallback). {type(e).__name__}: {e}"
 
 
-def looks_like_24_sparse(w: torch.Tensor, rows_sample: int = 64, eps: float = 0.0) -> bool:
-    """Проверяем, что в каждом блоке из 4 элементов ровно 2 нуля (2:4)."""
-    if w.ndim != 2:
-        return False
-    ww = w.detach()
-    r = min(rows_sample, ww.shape[0])
-    ww = ww[:r, :]
-    if ww.shape[1] % 4 != 0:
-        return False
-    g = ww.view(r, -1, 4)
-    zeros = (g.abs() <= eps).sum(dim=-1)
-    return bool((zeros == 2).all().item())
+# def looks_like_24_sparse(w: torch.Tensor, rows_sample: int = 64, eps: float = 0.0) -> bool:
+#     """Проверяем, что в каждом блоке из 4 элементов ровно 2 нуля (2:4)."""
+#     if w.ndim != 2:
+#         return False
+#     ww = w.detach()
+#     r = min(rows_sample, ww.shape[0])
+#     ww = ww[:r, :]
+#     if ww.shape[1] % 4 != 0:
+#         return False
+#     g = ww.view(r, -1, 4)
+#     zeros = (g.abs() <= eps).sum(dim=-1)
+#     return bool((zeros == 2).all().item())
 
 
 def apply_24_sparsity_safe(pipe: StableVideoDiffusionPipeline, *, exclude_path: str = "config/exclude.json") -> str:
-    # 1) Проверим доступность cuSPARSELt
-    if not (torch.cuda.is_available() and torch.backends.cusparselt.is_available()):  # type: ignore
+    # Проверим доступность cuSPARSELt
+    if not (torch.cuda.is_available() and torch.backends.cusparselt.is_available()):
         return "cuSPARSELt not available: skip"
     
-    SparseSemiStructuredTensor._FORCE_CUTLASS = False  # type: ignore[attr-defined]
+    SparseSemiStructuredTensor._FORCE_CUTLASS = False
 
-    # 2) Exclude list
+    # Exclude list
     project_root = Path(__file__).resolve().parents[2]
     exclude_path = (project_root / exclude_path).resolve()
     with open(exclude_path, "r", encoding="utf-8") as f:
         exclude = set(json.load(f).get("exclude_modules", []))
 
-    # 3) Патчим Linear на безопасный путь: если веса не 2:4 - не трогаем.
+    # Патчим Linear на безопасный путь: если веса не 2:4 - не трогаем.
     patched = []
     for fqn, m in pipe.unet.named_modules():
         if not isinstance(m, nn.Linear):
@@ -112,20 +112,20 @@ def apply_24_sparsity_safe(pipe: StableVideoDiffusionPipeline, *, exclude_path: 
 
         _m = m
 
-        def _forward(x, _m=_m):  # type: ignore
+        def _forward(x, _m=_m):
             w = _m.weight
             if w is None:
                 return F.linear(x, w, _m.bias)
             key = (w._version, w.dtype, w.device)
             if getattr(_m, "_ss_key", None) != key:
-                _m._ss_w = to_sparse_semi_structured(w)  # type: ignore[attr-defined]
+                _m._ss_w = to_sparse_semi_structured(w)
                 _m._ss_key = key
-            return F.linear(x, _m._ss_w, _m.bias)  # type: ignore[attr-defined]
+            return F.linear(x, _m._ss_w, _m.bias)
 
-        m.forward = _forward  # type: ignore[assignment]
+        m.forward = _forward
         patched.append(fqn)
 
-    v = torch.backends.cusparselt.version()  # type: ignore
+    v = torch.backends.cusparselt.version()
     return f"Applied SAFE 2:4 (cuSPARSELt={v}) by forward-patching Linear: patched={len(patched)}"
 
 
@@ -172,11 +172,10 @@ def load_lcm_scheduler_module(*, repo_id: str = "wangfuyun/AnimateLCM-SVD", file
     spec = importlib.util.spec_from_file_location("lcm_scheduler", sched_path)
     mod = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
-    spec.loader.exec_module(mod)  # type: ignore
+    spec.loader.exec_module(mod)
     return mod
 
 
-# --- Public method runners (return frames, video_path, note) ---
 
 def run_method_0(input_img: Image.Image, *, seed: int = 42, steps: int = 25, frames: int = 25, out_path: str = "m0_no_optimizations.mp4"):
     pipe = load_svd_pipe(fp16=True, cpu_offload=False)
@@ -244,7 +243,6 @@ def run_method_6(
     out_path: str = "m6_keyframes_rife.mp4",
 ):
     pipe = load_svd_pipe(fp16=True, cpu_offload=False)
-    #frames_key, _, seconds = generate_svd_video(pipe, input_img, seed=seed, num_inference_steps=steps, num_frames=keyframes, out_path="__tmp_keyframes.mp4", fps=fps)
     out_path_p = Path(out_path).resolve()
     tmp_keyframes_path = out_path_p.parent / "__tmp_keyframes.mp4"
     tmp_keyframes_path.parent.mkdir(parents=True, exist_ok=True)

@@ -7,9 +7,9 @@ from PIL import Image
 import torch
 import torch.nn.functional as F
 from .image_utils import frames_to_uint8
-from .types import RunMetrics
-import piq  # type: ignore
-import open_clip  # type: ignore
+from .run_metrics import RunMetrics
+import piq
+import open_clip
 
 _clip_model = None
 _clip_preprocess = None
@@ -86,7 +86,7 @@ def compute_metrics(
     gpu_temp_peak_c: Optional[float] = None,
     notes: str = "",
 ) -> RunMetrics:
-    # Метрики считаем на CPU (чтобы не мешать VRAM и чтобы worker не зависел от второй GPU).
+    # Метрики считаем на CPU (чтобы не мешать VRAM и чтобы worker не зависел от GPU)
     metrics_device = torch.device("cpu")
     w, h = frames[0].size
 

@@ -9,7 +9,7 @@ description = "Comparative analysis of neural network optimization methods on im
 authors = ["You <you@example.com>"]
 readme = "README.md"
 package-mode = false
-packages = [{ include = "i2v_opt" }]
+packages = [{ include = "app" }]
 
 # PyTorch CUDA 12.8 wheels
 [[tool.poetry.source]]

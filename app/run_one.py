@@ -36,7 +36,7 @@ METHODS = {
 
 
 def run_and_measure(*, label: str, notes: str, method_id: str, params: Dict[str, Any], input_img: Image.Image, out_video_path: Path):
-    # VRAM stats (start)
+    # VRAM stats
     cleanup_cuda()
     vram_start = vram_snapshot_mb(prefix="start_")
     temp_start = gpu_temp_snapshot_c(prefix="start_")
@@ -87,7 +87,6 @@ def run_and_measure(*, label: str, notes: str, method_id: str, params: Dict[str,
         notes=merged_notes,
     )
 
-    # best-effort cleanup (process will exit anyway)
     cleanup_cuda()
 
     return metrics, Path(path)
@@ -109,7 +108,7 @@ def main() -> int:
     notes = args.notes or ""
 
     params = json.loads(args.params)
-    # out_path is controlled by runner
+
     if isinstance(params, dict):
         params.pop("out_path", None)
 
