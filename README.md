@@ -1,3 +1,5 @@
+https://sapi.bntu.by/jour/article/view/798/569
+
 # Optimization of diffusion models (image-to-video)
 
 The project is dedicated to an applied study of diffusion model optimization methods for the **image-to-video** task based on **Stable Video Diffusion (SVD)** from `diffusers`.
